@@ -1,0 +1,13 @@
+bin/
+obj/
+*.log
+spikes/**/obs-config/
+runtime/
+avatar-web/node_modules/
+dist/
+build-alt/
+spikes/**/out/
+vcast-studiobuild-alt*/
+
+# AI レビューの生ログ（公開しない）
+logs/

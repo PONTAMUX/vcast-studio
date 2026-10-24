@@ -1,0 +1,14 @@
+使用しているソフトウェアとライセンス
+====================================
+- OBS Studio / libobs と同梱プラグイン（obs-ffmpeg, obs-filters, obs-nvenc, obs-outputs, obs-transitions, win-capture,
+  win-dshow, win-wasapi, obs-browser ほか）: GPL-2.0-or-later（一部 MIT / BSD / LGPL 等の部品を含む）。
+  Copyright (c) OBS Project contributors。GPL の本文と作者一覧は runtime\obs\licenses\ を参照。
+- FFmpeg（libavcodec 等）: LGPL-2.1-or-later / GPL（ビルドによる）。x264: GPL-2.0-or-later。
+- Chromium Embedded Framework（obs-browser 経由）: BSD-3-Clause。
+- three.js: MIT License. Copyright (c) 2010-2025 three.js authors.
+- @pixiv/three-vrm: MIT License. Copyright (c) pixiv Inc.
+- MediaPipe Tasks Vision（顔認識、face_landmarker モデル含む）: Apache License 2.0. Copyright Google LLC.
+- Microsoft Edge WebView2: Microsoft の再頒布条件に従う。
+- .NET / WPF: MIT License. Copyright (c) .NET Foundation and Contributors.
+- System.Security.Cryptography.ProtectedData: MIT License.
+- 同梱していないが、テスト用に使ったサンプルモデル: Seed-san（VRM Public License 1.0、VRM コンソーシアム / VirtualCast）。

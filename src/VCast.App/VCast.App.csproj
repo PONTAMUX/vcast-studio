@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>VCastStudio</AssemblyName>
+    <RootNamespace>VCast</RootNamespace>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- アバター描画ページと同梱ライブラリ（three.js MIT / three-vrm MIT / MediaPipe Apache-2.0） -->
+    <Resource Include="Assets\app.ico" />
+    <Content Include="Avatar\www\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="Avatar\www" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3485.44" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.12" />
+    <!-- ネイティブアバター描画（実験）: D3D11 と VRM(glTF) 読み込み。いずれも MIT -->
+    <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="3.8.3" />
+    <PackageReference Include="SharpGLTF.Core" Version="1.0.7" />
+  </ItemGroup>
+</Project>

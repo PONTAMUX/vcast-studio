@@ -1,0 +1,282 @@
+<Window x:Class="VCast.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:obs="clr-namespace:VCast.Obs"
+        xmlns:ui="clr-namespace:VCast.Ui"
+        Icon="Assets/app.ico" Title="VCast Studio" Width="1400" Height="860" MinWidth="1000" MinHeight="600"
+        Background="{StaticResource Bg}" Foreground="{StaticResource Fg}" FontFamily="Yu Gothic UI" FontSize="13"
+        PreviewKeyDown="OnPreviewKeyDown">
+  <Window.Resources>
+    <Style x:Key="ToolBtn" TargetType="Button">
+      <Setter Property="Background" Value="#26262E"/>
+      <Setter Property="Foreground" Value="{StaticResource Fg}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
+      <Setter Property="MinWidth" Value="30"/>
+      <Setter Property="Height" Value="28"/>
+      <Setter Property="Margin" Value="0,0,4,0"/>
+      <Setter Property="Padding" Value="8,0"/>
+    </Style>
+    <Style x:Key="PanelList" TargetType="ListBox">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{StaticResource Fg}"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    </Style>
+    <Style TargetType="ListBoxItem">
+      <Setter Property="Padding" Value="8,6"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ListBoxItem">
+            <Border x:Name="Bd" Background="Transparent" Padding="{TemplateBinding Padding}" CornerRadius="4" Margin="2,1">
+              <ContentPresenter/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Background" Value="#2A2A33"/></Trigger>
+              <Trigger Property="IsSelected" Value="True"><Setter TargetName="Bd" Property="Background" Value="#3B2F77"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="Header" TargetType="TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource Sub}"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Margin" Value="10,8,10,4"/>
+    </Style>
+  </Window.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="40"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition x:Name="MixerRow" Height="170"/>
+      <RowDefinition Height="26"/>
+    </Grid.RowDefinitions>
+
+    <DockPanel Background="{StaticResource Panel}" LastChildFill="False">
+      <TextBlock Text="VCast Studio" FontWeight="Bold" FontSize="15" VerticalAlignment="Center" Margin="14,0"/>
+      <!-- 配信・録画 -->
+      <Button x:Name="StreamButton" Content="● 配信開始" Style="{StaticResource ToolBtn}" Margin="8,0,4,0" Click="OnStream" MinWidth="104"
+              ToolTip="配信を開始／停止（開始前に配信準備チェック）"/>
+      <Button x:Name="RecordButton" Content="● 録画" Style="{StaticResource ToolBtn}" Click="OnRecord" MinWidth="76" ToolTip="録画を開始／停止"/>
+      <Button x:Name="MacroButton" Content="▶ マクロ" Style="{StaticResource ToolBtn}" Click="OnMacros" MinWidth="84" Visibility="Collapsed" ToolTip="まとめて実行（シーン移動＋表情＋マイク＋効果音＋録画）。プロモードの機能"/>
+      <Button x:Name="LayoutButton" Content="🧩 レイアウト" Style="{StaticResource ToolBtn}" Click="OnLayouts" MinWidth="100" Visibility="Collapsed" ToolTip="いまのシーンの配置をワンクリックで整える（ゲーム全画面＋アバター小 など）。プロモードの機能"/>
+      <Button x:Name="PanicButton" Content="🙈 隠す" Style="{StaticResource ToolBtn}" Click="OnPanic" MinWidth="80" ToolTip="緊急: 映像を隠して音を全部消す（配信・録画にも出ない）。もう一度押すと戻る。ホットキーも設定できます"/>
+      <Button x:Name="CommentButton" Content="💬 コメント" Style="{StaticResource ToolBtn}" Click="OnToggleComments" MinWidth="92" ToolTip="コメントビューを表示／非表示（Twitch のチャットを一覧し、VOICEVOX で読み上げ）"/>
+      <Button x:Name="RecordFolderButton" Content="📁" Style="{StaticResource ToolBtn}" Click="OnOpenRecordFolder" ToolTip="録画ファイルの保存先フォルダを開く（保存先の変更は「⚙ 設定」の録画）"/>
+      <Button x:Name="ReplayButton" Content="↺ リプレイ" Style="{StaticResource ToolBtn}" Click="OnReplay" MinWidth="84"
+              ToolTip="直前の映像をためておき、もう一度押すと保存（右クリックで停止）" MouseRightButtonUp="OnReplayStop"/>
+      <Button x:Name="VcamButton" Content="📷 仮想カメラ" Style="{StaticResource ToolBtn}" Click="OnVirtualCam" MinWidth="100"
+              ToolTip="Zoom・Teams・Discord などにこの画面をカメラとして出す"/>
+      <Button Content="⚙ 設定" Style="{StaticResource ToolBtn}" Click="OnSettings" ToolTip="設定を開く: 配信先・ストリームキー・画質・録画の保存先と画質・リプレイ・縦型・外部操作"/>
+      <TextBlock x:Name="LiveStatus" VerticalAlignment="Center" Margin="10,0" FontSize="12"/>
+      <Button DockPanel.Dock="Right" Content="？ 使い方" Style="{StaticResource ToolBtn}" Margin="0,0,12,0" Click="OnHelp"
+              ToolTip="操作方法と各機能の説明"/>
+      <Button x:Name="ModeButton" DockPanel.Dock="Right" Style="{StaticResource ToolBtn}" Margin="0,0,6,0" Click="OnToggleMode"
+              ToolTip="かんたんモード（必要なものだけ）と詳細モード（シーン・ソース・ミキサーを細かく）を切り替え。プロモードは設定でオン"/>
+      <Button x:Name="VerticalButton" DockPanel.Dock="Right" Content="📱 縦型" Style="{StaticResource ToolBtn}" Margin="0,0,6,0" Click="OnVerticalPreview"
+              Visibility="Collapsed" ToolTip="縦型（ショート・TikTok 用）の同時出力の見え方を確認"/>
+      <Button x:Name="ProfileButton" DockPanel.Dock="Right" Content="📁 標準 ▾" Style="{StaticResource ToolBtn}" Margin="0,0,6,0" Click="OnProfiles"
+              ToolTip="プロファイル: 番組ごとの「設定＋シーン」のセットを切り替え（企業・チーム向け）"/>
+      <Button x:Name="HotkeysButton" DockPanel.Dock="Right" Content="⌨ ホットキー" Style="{StaticResource ToolBtn}" Margin="0,0,6,0" Click="OnHotkeys"
+              ToolTip="配信開始・録画・ミュート・表情・サウンドなどのキー割り当て（どのアプリ使用中でも効く）"/>
+      <Button x:Name="SoundboardButton" DockPanel.Dock="Right" Content="🔊 サウンドボード" Style="{StaticResource ToolBtn}" Margin="0,0,6,0" Click="OnSoundboard"
+              ToolTip="効果音・BGM をボタンで鳴らす（ホットキー Ctrl+Shift+1〜0）"/>
+      <Button DockPanel.Dock="Right" Content="🧍 アバター" Style="{StaticResource ToolBtn}" Margin="0,0,6,0" Click="OnAvatar"
+              ToolTip="3Dアバターのモデル・カメラ・表情ホットキーの設定"/>
+    </DockPanel>
+
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition x:Name="SceneCol" Width="210"/>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition x:Name="SideCol" Width="290"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- シーン -->
+      <DockPanel x:Name="ScenePanel" Background="{StaticResource Panel}">
+        <TextBlock DockPanel.Dock="Top" Text="シーン" Style="{StaticResource Header}"/>
+        <StackPanel x:Name="TransitionBox" DockPanel.Dock="Bottom" Margin="8,0,8,8">
+          <TextBlock Text="切り替え効果" Foreground="{StaticResource Sub}" FontSize="11" Margin="0,0,0,3"/>
+          <DockPanel>
+            <TextBox x:Name="TransitionMs" DockPanel.Dock="Right" Width="52" Margin="4,0,0,0" ToolTip="長さ（ミリ秒）" TextChanged="OnTransitionMs"
+                     Background="#26262E" Foreground="{StaticResource Fg}" BorderBrush="{StaticResource Line}"/>
+            <ComboBox x:Name="TransitionCombo" SelectionChanged="OnTransitionType" ToolTip="シーンを切り替えるときの効果"/>
+          </DockPanel>
+          <Button x:Name="StudioButton" Content="🎬 スタジオモード" Style="{StaticResource ToolBtn}" Margin="0,8,0,0" HorizontalAlignment="Stretch" Click="OnStudioMode"
+                  ToolTip="プレビュー（次に出す画面）と本番を並べて、カット・オート・Tバーで切り替える（vMix 風）"/>
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="8">
+          <Button Content="＋" ToolTip="シーンを追加" Style="{StaticResource ToolBtn}" Click="OnAddScene"/>
+          <Button Content="－" ToolTip="シーンを削除" Style="{StaticResource ToolBtn}" Click="OnRemoveScene"/>
+          <Button Content="名前変更" Style="{StaticResource ToolBtn}" Click="OnRenameScene"/>
+          <Button Content="読込" Style="{StaticResource ToolBtn}" Click="OnImportScenes"
+                  ToolTip="OBS Studio のシーンコレクション（.json）を読み込む（いまのシーンは置き換わります）"/>
+        </StackPanel>
+        <ListBox x:Name="SceneList" Style="{StaticResource PanelList}" DisplayMemberPath="Name"
+                 SelectionChanged="OnSceneSelected" MouseDoubleClick="OnRenameScene"/>
+      </DockPanel>
+
+      <!-- プレビュー + 開いているアプリ -->
+      <Grid Grid.Column="1" Margin="10">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition x:Name="StudioCtlCol" Width="0"/>
+          <ColumnDefinition x:Name="ProgramCol" Width="0"/>
+        </Grid.ColumnDefinitions>
+        <!-- スタジオモード: 操作列（カット・オート・Tバー） -->
+        <StackPanel x:Name="StudioControls" Grid.Column="1" Margin="8,0" VerticalAlignment="Center" Visibility="Collapsed">
+          <TextBlock Text="切り替え" Foreground="{StaticResource Sub}" FontSize="11" HorizontalAlignment="Center"/>
+          <Button Content="カット" Style="{StaticResource ToolBtn}" Height="36" Margin="0,6,0,0" Click="OnCut" ToolTip="プレビューを本番へ（効果なし・即）"/>
+          <Button Content="オート" Style="{StaticResource ToolBtn}" Height="36" Margin="0,6,0,0" Click="OnAuto" ToolTip="プレビューを本番へ（選んだ効果で）"/>
+          <Slider x:Name="TBar" Orientation="Vertical" Minimum="0" Maximum="1" Height="150" Margin="0,12,0,0" HorizontalAlignment="Center"
+                  ValueChanged="OnTBar" PreviewMouseLeftButtonUp="OnTBarReleased" ToolTip="Tバー: 上まで動かすと本番がプレビューに切り替わる（途中で止めると重なった状態）"/>
+          <TextBlock Text="Tバー" Foreground="{StaticResource Sub}" FontSize="11" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+        </StackPanel>
+        <!-- スタジオモード: 本番 -->
+        <DockPanel x:Name="ProgramPane" Grid.Column="2" Visibility="Collapsed">
+          <TextBlock DockPanel.Dock="Top" Text="● 本番（配信に出ている画面）" Foreground="{StaticResource Live}" FontSize="12" FontWeight="SemiBold" Margin="2,0,0,4"/>
+          <Border BorderBrush="{StaticResource Live}" BorderThickness="2">
+            <obs:PreviewHost x:Name="ProgramView"/>
+          </Border>
+        </DockPanel>
+        <DockPanel Grid.Column="0">
+        <TextBlock x:Name="PreviewLabel" DockPanel.Dock="Top" Text="プレビュー（次に出す画面を編集）" Foreground="{StaticResource Accent}" FontSize="12" FontWeight="SemiBold" Margin="2,0,0,4" Visibility="Collapsed"/>
+        <Border x:Name="PreviewFrame" BorderBrush="{StaticResource Line}" BorderThickness="1">
+          <Grid>
+            <obs:PreviewHost x:Name="Preview"/>
+            <!-- シーンが空のときだけ表示（HwndHost の上には重ねられないので Preview を隠して入れ替える） -->
+            <Border x:Name="EmptyState" Background="#1A1A1E" Visibility="Collapsed" AllowDrop="True" Drop="OnEmptyDrop" DragOver="OnFileDragOver">
+              <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="620">
+                <TextBlock x:Name="EmptyTitle" Text="まだ何も映っていません" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="EmptySub" Text="配信に映したいものを追加しましょう" Foreground="{StaticResource Sub}" HorizontalAlignment="Center" Margin="0,6,0,18"/>
+                <WrapPanel x:Name="QuickAdd" HorizontalAlignment="Center"/>
+                <TextBlock Foreground="{StaticResource Sub}" FontSize="12" Margin="0,18,0,0" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center"
+                           Text="下の「開いているアプリ」をクリック、またはここへドラッグすると、そのウィンドウを映せます。&#10;画像・動画・音声ファイルはエクスプローラーからここへドラッグ＆ドロップできます。"/>
+              </StackPanel>
+            </Border>
+          </Grid>
+        </Border>
+        </DockPanel>
+        </Grid>
+        <DockPanel Grid.Row="1" Margin="0,8,0,0">
+          <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,8,0" Width="92">
+            <TextBlock Text="開いているアプリ" FontSize="12" Foreground="{StaticResource Sub}"/>
+            <Button Content="↻ 更新" Style="{StaticResource ToolBtn}" Height="22" FontSize="11" HorizontalAlignment="Left" Margin="0,4,0,0" Click="OnRefreshApps"
+                    ToolTip="一覧を最新にする"/>
+          </StackPanel>
+          <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+            <ItemsControl x:Name="AppStrip">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Width="132" Height="44" Margin="0,0,6,0" Padding="6,4" CornerRadius="4" Background="#26262E" Cursor="Hand" Opacity="{Binding Dim}"
+                          BorderBrush="{StaticResource Line}" BorderThickness="1"
+                          MouseLeftButtonDown="OnAppDown" MouseMove="OnAppMove" MouseLeftButtonUp="OnAppUp">
+                    <Border.ContextMenu>
+                      <ContextMenu>
+                        <MenuItem Header="このアプリの音だけを追加（ゲーム音が入らないとき）" Click="OnAddAppAudio"/>
+                      </ContextMenu>
+                    </Border.ContextMenu>
+                    <Border.ToolTip>
+                      <TextBlock><Run Text="{Binding Title, Mode=OneWay}"/><LineBreak/><Run Text="{Binding Exe, Mode=OneWay}" Foreground="Gray"/><LineBreak/><Run Text="クリックで追加 ／ プレビューへドラッグで好きな位置に追加"/><LineBreak/><Run Text="{Binding Note, Mode=OneWay}" Foreground="#E5A84D"/></TextBlock>
+                    </Border.ToolTip>
+                    <DockPanel>
+                      <Image Source="{Binding Icon}" Width="24" Height="24" Margin="0,0,6,0" DockPanel.Dock="Left"/>
+                      <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontSize="12"/>
+                    </DockPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+      </Grid>
+
+      <!-- かんたんモードの右パネル（コードで作る） -->
+      <ContentControl x:Name="SimpleHost" Grid.Column="2" Visibility="Collapsed"/>
+
+      <!-- ソース -->
+      <DockPanel x:Name="SourcePanel" Grid.Column="2" Background="{StaticResource Panel}">
+        <TextBlock DockPanel.Dock="Top" Text="ソース（上にあるものが手前）" Style="{StaticResource Header}"/>
+        <WrapPanel DockPanel.Dock="Bottom" Margin="8">
+          <Button x:Name="AddSourceButton" Content="＋ 追加" ToolTip="ソースを追加" Style="{StaticResource ToolBtn}" Click="OnAddSource"/>
+          <Button Content="－" ToolTip="削除 (Delete)" Style="{StaticResource ToolBtn}" Click="OnRemoveSource"/>
+          <Button Content="↑" ToolTip="手前へ" Style="{StaticResource ToolBtn}" Click="OnMoveUp"/>
+          <Button Content="↓" ToolTip="奥へ" Style="{StaticResource ToolBtn}" Click="OnMoveDown"/>
+          <Button Content="⚙ 設定" ToolTip="プロパティ（ダブルクリックでも開く）" Style="{StaticResource ToolBtn}" Click="OnProperties"/>
+          <Button Content="画面に合わせる" Style="{StaticResource ToolBtn}" Click="OnFit" Margin="0,4,4,0"/>
+          <Button x:Name="WalkButton" Content="🚶 WASD OFF" ToolTip="オンの間、W/A/S/D（Shift で走る）でアバターを歩かせる" Visibility="Collapsed" Style="{StaticResource ToolBtn}" Click="OnWalkToggle" Margin="0,4,4,0"/>
+          <Button Content="フィルタ" ToolTip="クロマキー・色補正・ノイズ除去などを付ける" Style="{StaticResource ToolBtn}" Click="OnSourceFilters" Margin="0,4,4,0"/>
+        </WrapPanel>
+        <ListBox x:Name="SourceList" Style="{StaticResource PanelList}"
+                 SelectionChanged="OnSourceSelected" MouseDoubleClick="OnProperties" MouseRightButtonUp="OnSourceRightClick">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <DockPanel>
+                <CheckBox DockPanel.Dock="Left" IsChecked="{Binding Visible}" ToolTip="表示/非表示" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <StackPanel>
+                  <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Text="{Binding TypeName}" Foreground="{StaticResource Sub}" FontSize="11"/>
+                </StackPanel>
+              </DockPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Grid>
+
+    <!-- 音声ミキサー -->
+    <DockPanel x:Name="MixerPanel" Grid.Row="2" Background="{StaticResource Panel}" Margin="0,1,0,0">
+      <DockPanel DockPanel.Dock="Top" Margin="10,6,10,2" LastChildFill="False">
+        <TextBlock Text="音声ミキサー" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource Sub}" VerticalAlignment="Center"/>
+        <TextBlock Text="  フェーダーで音量 ・ 🔇でミュート ・ 🎧で自分の耳に流す ・ ⚙でノイズ除去など" FontSize="11" Foreground="{StaticResource Sub}" VerticalAlignment="Center"/>
+      </DockPanel>
+      <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="6,0,6,4">
+        <ItemsControl x:Name="MixerList">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Grid Height="32" Margin="4,1">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="170"/>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="170"/>
+                  <ColumnDefinition Width="66"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="4,0,8,0" ToolTip="{Binding Name}"/>
+                <ui:LevelMeter Grid.Column="1" Strip="{Binding}" Height="14" VerticalAlignment="Center" Loaded="OnMeterLoaded" Unloaded="OnMeterUnloaded"/>
+                <Slider Grid.Column="2" Minimum="0" Maximum="1" Value="{Binding Deflection}" VerticalAlignment="Center" Margin="10,0,6,0"
+                        SmallChange="0.01" LargeChange="0.1" IsMoveToPointEnabled="True" ToolTip="音量（右ほど大きい）"/>
+                <TextBlock Grid.Column="3" Text="{Binding DbText}" VerticalAlignment="Center" FontSize="11" Foreground="{StaticResource Sub}"/>
+                <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
+                  <ToggleButton IsChecked="{Binding Muted}" Content="🔇" Width="30" Height="24" Margin="0,0,4,0" ToolTip="ミュート（配信にも録画にも出なくなる）"
+                                Background="#26262E" Foreground="{StaticResource Fg}" BorderBrush="{StaticResource Line}"/>
+                  <Button Content="{Binding MonitoringText}" Width="84" Height="24" Margin="0,0,4,0" Click="OnMonitoring" FontSize="11"
+                          ToolTip="オフ → 自分だけ聞く（配信には出さない） → 聞く＋配信にも出す"
+                          Background="#26262E" Foreground="{StaticResource Fg}" BorderBrush="{StaticResource Line}"/>
+                  <Button Content="⚙" Width="30" Height="24" Click="OnStripMenu" ToolTip="フィルタ（ノイズ除去など）・デバイス"
+                          Background="#26262E" Foreground="{StaticResource Fg}" BorderBrush="{StaticResource Line}"/>
+                </StackPanel>
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+    </DockPanel>
+
+    <DockPanel Grid.Row="3" Background="{StaticResource Panel}">
+      <TextBlock x:Name="Perf" DockPanel.Dock="Right" Foreground="{StaticResource Sub}" FontSize="12" VerticalAlignment="Center" Margin="12,0"
+                 ToolTip="VCast 本体とアバター描画を合わせた負荷。描画落ち＝PC が 60fps を作れなかった割合、圧縮落ち＝エンコードが間に合わなかった割合"/>
+      <TextBlock x:Name="Status" Foreground="{StaticResource Sub}" FontSize="12" VerticalAlignment="Center" Margin="12,0"/>
+    </DockPanel>
+  </Grid>
+</Window>

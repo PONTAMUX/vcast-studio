@@ -1,0 +1,3 @@
+src/VCast.App/Avatar/www/vendor/** -text
+*.wasm binary
+*.task binary

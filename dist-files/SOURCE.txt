@@ -1,0 +1,19 @@
+ソースコードについて
+====================
+VCast Studio は OBS Studio のエンジン（libobs、GPL-2.0-or-later）を使っているため、
+このソフト全体が GPL-2.0-or-later で配布されます。受け取った方は、対応するソースコードを受け取る権利があります。
+GPL の本文は runtime\obs\licenses\OBS-gplv2.txt にあります。
+
+■ VCast Studio 本体のソース
+  https://github.com/PONTAMUX/vcast-studio
+  ダウンロード配布のあいだ、この版のソースを誰でも入手できる状態にしておく必要があります。
+  （公開先を書かないまま配布しないでください）
+
+■ 同梱している OBS Studio 32.1.2（バイナリ）のソース
+  同梱している OBS のファイルは、OBS Studio 公式インストーラのものを、必要なものだけ取り出したもので、改変していません。
+  対応するソースコード: https://github.com/obsproject/obs-studio （タグ 32.1.2）
+  OBS が使っている外部ライブラリ（FFmpeg・x264・CEF など）のソースは、OBS 公式の依存ライブラリのリポジトリ
+  https://github.com/obsproject/obs-deps と、各プロジェクトの公開ソースから入手できます。
+
+■ その他の同梱物のライセンス
+  THIRD_PARTY_NOTICES.txt を参照してください。
